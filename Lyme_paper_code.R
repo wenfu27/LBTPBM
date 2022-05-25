@@ -1,29 +1,7 @@
-# Lyme paper
-# A two-part Bayesian spatio-temporal model
-# Author Wen Fu
-# 25 May 2020
+# This the model code for papaer 
+# 'Environment, animal hosts and human activity on predicting space-time variations of Lyme Borreliosis incidence in France: a Bayesian two-part model'
+# Upload date: 25 May 2022
 
-library(sp)
-library(gstat)
-library(dplyr)
-library(purrr)
-library(maps) 
-library(RColorBrewer)
-# Spatial plotting
-library(rgdal)
-library(raster)
-library(rNOMADS)
-library(RSQLite)
-library(dbplyr)
-#library(chron)
-library(lattice)
-library(ncdf4)
-#library(plot3D)
-library(ecmwfr)
-library(keyring)
-library(maptools)
-library(ggplot2)
-library(plyr)
 #install.packages("INLA", dep = TRUE, repos = "https://inla.r-inla-download.org/R/stable")
 library("INLA")
 #install.packages('foreach')
@@ -41,7 +19,10 @@ library("ggplot2")
 library("MASS")
 library("JointModel")
 
-# Input data 
+# 1-  Import datasets
+# We prepared two different dataset, one dataset from 2016 to 2019 for modelling
+# another dataset 2020 used for model validation
+
 setwd('C:\\Users\\Wen\\')
 
 # IDarea1 = ID for each pixel 
@@ -59,10 +40,8 @@ setwd('C:\\Users\\Wen\\')
 # season = Winter Jan to Mar, Spring Apr to Jun, Summer Jul to Sept, Autumn Oct to Dec
 # IDtime1 = 1, 2, 3 to 16 quarters during 2016-19 
 
-
-############### classify the covariates 
-
-## LB dataset 2016-19 4 years
+# Each covariate was categorised by quantille or biological relevance
+# LB dataset 2016-19 
 Dat<- read.csv2('Dat1619.csv')
 Dat$deer_cat <- cut(Dat$deer, c(0, 0.4, 0.6, 0.8, 1), include.lowest = TRUE)
 Dat$ndvi_cat<- cut(Dat$ndvi, c(-1, 0.59, 1), include.lowest = TRUE)
@@ -92,7 +71,7 @@ Dat20$rod_cat<- cut(Dat20$rod, c(1, 3.27, 5), include.lowest = TRUE)
 
 
 # Data 2016-2019 for modelling 
-# create dataset with positive values only for the continuous part in Gamma model
+# create dataset with positive values only for the continuous part
 Datlog <- Dat[Dat$inc>0,]
 nb <- length(Dat$inc) # length of binary part  
 nc <- length(Datlog$inc) # length of continuous part 
@@ -100,7 +79,7 @@ np= 1573 # number of grid cells (the mainland France)
 Dat$b <- ifelse(Dat$inc==0,0,1) # zero value indicator (binary part outcome)
 Datlog$c <- Datlog$inc # positive values only (continuous part outcome)
 
-# add outcome NA of 2020 for the two parts + link column for prediction link
+# add outcome NA of 2020 for the two parts + link column for prediction link (used for prediction)
 nd=6292 # Total number of cells to be projected in 2020 (all four seasons)
 yy <- matrix(NA, ncol = 3, nrow = nb+nc+nd+nd)
 yy[1:(nb+nd),1] <- c(Dat$b,rep(NA, nd)) # binary outcome
@@ -112,7 +91,7 @@ yb = yy[,1]
 yc = yy[,2] 
 link=yy[,3]
 
-#### Add Prediction part for the year 2020 in 2016-19 dataset 
+#### Merge 2020 dataset to 2016-19 dataset 
 # binary outcome for 2020
 Dat2<- Dat20
 Dat2$b<- NA

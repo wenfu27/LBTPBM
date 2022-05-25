@@ -20,7 +20,7 @@ library("MASS")
 library("JointModel")
 
 # 1-  Import datasets
-# We prepared two different dataset, one dataset from 2016 to 2019 for modelling
+# We prepared two datasetd, one for 2016-19 used for parameter inference
 # another dataset 2020 used for model validation
 
 setwd('C:\\Users\\Wen\\')
@@ -30,9 +30,9 @@ setwd('C:\\Users\\Wen\\')
 # inc= LB seasonal incidence estimated by kriging interpolation
 # deer= index of deer presence 
 # ndvi= vegetation indice (Normalized difference vegetation index)
-# maxST= averaged maximum soil temperature at season Q
-# maxrh= averaged maximum relative humidity at season Q
-# maxst_bf= averaged maximum soil temperature at season Q-1
+# maxST= averaged maximum soil temperature at season T
+# maxrh= averaged maximum relative humidity at season T
+# maxst_bf= averaged maximum soil temperature at season T-1
 # sd= saturation deficit, calculated by maxST and maxrh
 # ndd14= number of dry days (14-day increments per unit)
 # citique = proportion of tick bite reports

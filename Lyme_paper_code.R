@@ -1,5 +1,5 @@
 # Lyme paper
-# A two-part Bayesian spatio-temporal modelling
+# A two-part Bayesian spatio-temporal model
 # Author Wen Fu
 # 25 May 2020
 
@@ -77,7 +77,6 @@ Dat$cit_cat<- cut(Dat$cit_rd, c(0, 0.05, 0.25, 4), include.lowest = T)
 Dat$rod <- round(Dat$rodent5,digits = 2)
 Dat$rod_cat<- cut(Dat$rod, c(1, 3.27, 5), include.lowest = TRUE)
 
-################## 2020 prediction
 ###  LB dataset 2020   
 Dat20<- read.csv2('Dat20.csv')
 Dat20$deer_cat <- cut(Dat20$deer, c(0, 0.4, 0.6, 0.8, 1), include.lowest = TRUE)
@@ -92,17 +91,17 @@ Dat20$rod <- round(Dat20$rodent5,digits = 2)
 Dat20$rod_cat<- cut(Dat20$rod, c(1, 3.27, 5), include.lowest = TRUE)
 
 
-# Data 2016-2019
-# create dataset with positive values only for the continuous part
+# Data 2016-2019 for modelling 
+# create dataset with positive values only for the continuous part in Gamma model
 Datlog <- Dat[Dat$inc>0,]
 nb <- length(Dat$inc) # length of binary part  
 nc <- length(Datlog$inc) # length of continuous part 
-np= 1573 # number of grid cells 
+np= 1573 # number of grid cells (the mainland France)
 Dat$b <- ifelse(Dat$inc==0,0,1) # zero value indicator (binary part outcome)
 Datlog$c <- Datlog$inc # positive values only (continuous part outcome)
 
 # add outcome NA of 2020 for the two parts + link column for prediction link
-nd=6292 # predict row for 2020
+nd=6292 # Total number of cells to be projected in 2020 (all four seasons)
 yy <- matrix(NA, ncol = 3, nrow = nb+nc+nd+nd)
 yy[1:(nb+nd),1] <- c(Dat$b,rep(NA, nd)) # binary outcome
 yy[nb+nd+(1:(nc+nd)),2] <- c(Datlog$inc,rep(NA, nd)) # continuous outcome
@@ -113,7 +112,7 @@ yb = yy[,1]
 yc = yy[,2] 
 link=yy[,3]
 
-#### Add Prediction part in 2016-19 dataset 
+#### Add Prediction part for the year 2020 in 2016-19 dataset 
 # binary outcome for 2020
 Dat2<- Dat20
 Dat2$b<- NA
@@ -162,8 +161,8 @@ jointdf = data.frame(linear.covariate, random.covariate, yb, yc,link)
 joint.data <- as.list(inla.rbind.data.frames(jointdf))
 Yjoint = cbind(joint.data$yb, joint.data$yc) # outcomes
 joint.data$Y <- Yjoint
-
-###
+ 
+### Boolean code for each categorical variable 
 joint.data$ndvi_b_06_1 <- ifelse(joint.data$ndvi_b=="(0.59,1]", 1, 0)
 joint.data$rodcatb_3_5 <- ifelse(joint.data$rodcatb=="(3.27,5]", 1, 0)
 joint.data$deer_c_4_6 <- ifelse(joint.data$deer_c=="(0.4,0.6]", 1, 0)
@@ -178,7 +177,7 @@ joint.data$maxstbf_c_10_15 <- ifelse(joint.data$maxstbf_c=="(10,15]", 1, 0)
 joint.data$maxstbf_c_15_22 <- ifelse(joint.data$maxstbf_c=="(15,22]", 1, 0)
 joint.data$maxstbf_c_22_36 <- ifelse(joint.data$maxstbf_c=="(22,36]", 1, 0)
 
-# Define the neighbour structure 
+# Define the neighbour structure in INLA
 map<- readOGR('map/template_fr.shp')  
 nb <- poly2nb(map)
 head(nb)
@@ -186,8 +185,7 @@ tail(nb) # 1573 cell
 nb2INLA("map.adj", nb)
 g <- inla.read.graph(filename = "map.adj")
 
-# INLA formula
-
+# model formula
 formulaJ <- Y ~  -1 + InteB + InteC + ndvi_b_06_1 + rodcatb_3_5 + deer_c_4_6 + deer_c_6_8 + deer_c_8_10 +
   maxstbf_c_10_15 + maxstbf_c_15_22 + maxstbf_c_22_36 + sd_c_3_5 + sd_c_5_9 + sd_c_9_23 +
   citcat_c_05_25 + citcat_c_25_40+

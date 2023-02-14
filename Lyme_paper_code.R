@@ -95,11 +95,13 @@ link=yy[,3]
 # add binary outcome for 2020+2021
 Dat2<- Dat20
 Dat2$b <-NA
+# merge the binary part of 2016-19 and 2020-21 
 Dat<- rbind.data.frame(Dat, Dat2)
 
 # add continuous outcome for 2020+2021
 Dat22<- Dat20
 Dat22$c<- NA
+# merge the gamma part of 2016-19 and 2020-21 
 Datlog<- rbind.data.frame(Datlog, Dat22)
 
 # set up unique identifiers for the random-effects

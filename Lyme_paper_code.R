@@ -63,9 +63,8 @@ Dat20$maxst_cat<- cut(Dat20$maxST, c(-2, 7, 15, 22, 37), include.lowest = T)
 Dat20$cit_cat<- cut(Dat20$citique, c(0, 0.05, 0.25, 4), include.lowest = T)
 Dat20$rod_cat<- cut(Dat20$rodent5, c(1, 3.7, 5), include.lowest = TRUE)
 
-# import the grid map
+# import the grid map shapefile from https://github.com/wenfu27/TPBM_LB/tree/main/map
 # define the spatial structure 
-map <- readRDS('map.rsd')
 nb <- poly2nb(map)
 tail(nb) # 1573 cell
 nb2INLA("map.adj", nb)
@@ -178,7 +177,6 @@ joint.data$maxst_c_22_37 <- ifelse(joint.data$maxstbf_c=="(22,37]", 1, 0)
 inla.setOption(inla.mode="experimental") # reduce the run out of memory 
 
 ## Model formula
-
 formulaJ <- Y ~   -1 + InteB + InteC + ndvi_b_06_1 + rodcatb_3_5 + deer_c_4_6 + deer_c_6_8 + deer_c_8_10 +
                   maxst_c_7_15 + maxst_c_15_22 + maxst_c_22_37 + sd_c_1_3 + sd_c_3_5 + sd_c_5 + citcat_c_05_25 + citcat_c_25_40 + 
                   f(IDbl, model = "bym", graph = g, group=IDgp, adjust.for.con.comp = TRUE, constr = TRUE) +
@@ -187,7 +185,6 @@ formulaJ <- Y ~   -1 + InteB + InteC + ndvi_b_06_1 + rodcatb_3_5 + deer_c_4_6 + 
    
   
 ##Fit model with INLA ()
-
 TPinla <- inla(formulaJ, family=c("binomial", "gamma"), 
                data=joint.data,
                Ntrials=c(rep(1,length(Dat$inc)),rep(NA,length(Datlog$inc))),
@@ -221,7 +218,6 @@ plot(TPinla$summary.fitted.values$sd[37753:70474], ylab = 'standard deviation')
 
 ## Model validation using histogram of PIT values for 2020-2021
 ns <- 1000
-# 
 snb <- inla.posterior.sample(ns, TPinla)
 snb[[1]]$hyperpar
 # observation 2020-2021
@@ -236,7 +232,6 @@ nc <- 20138 # length of continuous part 20138 units of anlaysis
 
 # add outcome NA of 2020+2021 for the two parts + link col for prediction link
 nd=6292*2 # predict row for 2020+2021
-#
 snb_l <- sapply(snb, function(x){
   rgamma(10632, scale = exp(x$latent[(nb+nd+nc+1):(nb+nc+nd+nd)][c(obs20_ga, obs21_ga)])/x$hyperpar[1],
          shape= x$hyperpar[1])
